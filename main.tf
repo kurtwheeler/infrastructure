@@ -25,18 +25,67 @@ resource "aws_subnet" "cognoma-1b" {
   map_public_ip_on_launch = true
 }
 
+resource "aws_iam_instance_profile" "ecs-instance-profile" {
+  name  = "cognoma-ecs-instance-profile"
+  roles = ["${aws_iam_role.ecs-instance.name}"]
+}
+
+resource "aws_iam_role" "ecs-instance" {
+  name = "cognoma-ecs-instance"
+
+  assume_role_policy = <<EOF
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Effect": "Allow",
+            "Action": [
+                "ecs:CreateCluster",
+                "ecs:DeregisterContainerInstance",
+                "ecs:DiscoverPollEndpoint",
+                "ecs:Poll",
+                "ecs:RegisterContainerInstance",
+                "ecs:StartTelemetrySession",
+                "ecs:Submit*",
+                "ecr:GetAuthorizationToken",
+                "ecr:BatchCheckLayerAvailability",
+                "ecr:GetDownloadUrlForLayer",
+                "ecr:BatchGetImage",
+                "logs:CreateLogStream",
+                "logs:PutLogEvents"
+            ],
+            "Resource": "*"
+        }
+    ]
+}
+EOF
+}
+
 resource "aws_instance" "cognoma-service-1" {
-  ami           = "ami-1924770e"
+  ami = "ami-1924770e"
   instance_type = "t2.small"
   availability_zone = "us-east-1a"
   vpc_security_group_ids = ["${aws_security_group.cognoma-service.id}"]
+  iam_instance_profile = "${aws_iam_instance_profile.ecs-instance-profile.arn}"
 
   # associate_public_ip_address = "do I need this?"
 }
 
 resource "aws_instance" "cognoma-service-2" {
-  ami           = "ami-1924770e"
+  ami = "ami-1924770e"
   instance_type = "t2.small"
   availability_zone = "us-east-1b"
   vpc_security_group_ids = ["${aws_security_group.cognoma-service.id}"]
+  iam_instance_profile = "${aws_iam_instance_profile.ecs-instance-profile.arn}"
+}
+
+resource "aws_db_instance" "postgres-db" {
+  allocated_storage = 100
+  storage_type = "gp2"
+  engine = "PostgreSQL"
+  engine_version = "9.5.4"
+  instance_class = "db.t2.large"
+  name = "cognoma-postgres"
+  username = "administrator"
+  password = "bar"
 }
