@@ -1,11 +1,3 @@
-resource "aws_ecr_repository" "container-repository" {
-  name = "cognoma-container-repository"
-}
-
-resource "aws_ecs_cluster" "core-service" {
-  name = "cognoma-core-service"
-}
-
 resource "aws_iam_role" "ecs-service-role" {
   name = "ecs-service"
 
@@ -55,7 +47,7 @@ EOF
 
 resource "aws_ecs_task_definition" "cognoma-core-service" {
   family = "cognoma-core-service"
-  container_definitions = "${file("task-definitions/core-service.json")}"
+  container_definitions = "${file("task-definitions/core-service.json.key")}"
 }
 
 resource "aws_ecs_service" "core-service" {
@@ -69,5 +61,24 @@ resource "aws_ecs_service" "core-service" {
     elb_name = "${aws_elb.cognoma-core.name}"
     container_name = "cognoma-core-service"
     container_port = 8000
+  }
+}
+
+resource "aws_ecs_task_definition" "cognoma-nginx" {
+  family = "cognoma-nginx"
+  container_definitions = "${file("task-definitions/nginx.json.key")}"
+}
+
+resource "aws_ecs_service" "nginx" {
+  name = "cognoma-nginx"
+  task_definition = "${aws_ecs_task_definition.cognoma-nginx.arn}"
+  desired_count  = 2
+  iam_role = "${aws_iam_role.ecs-service-role.name}"
+  depends_on = ["aws_iam_role_policy.ecs-service"]
+
+  load_balancer {
+    elb_name = "${aws_elb.cognoma-nginx.name}"
+    container_name = "cognoma-nginx"
+    container_port = 80
   }
 }
