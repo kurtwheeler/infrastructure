@@ -6,6 +6,8 @@ provider "aws" {
   region = "us-east-1"
 }
 
+variable "database_password" {}
+
 resource "aws_vpc" "cognoma-vpc" {
   cidr_block = "172.31.0.0/16"
   enable_dns_support = true
@@ -86,6 +88,6 @@ resource "aws_db_instance" "postgres-db" {
   engine_version = "9.5.4"
   instance_class = "db.t2.large"
   name = "cognoma-postgres"
-  username = "administrator"
-  password = "bar"
+  username = "administrative"
+  password = "${var.database_password}"
 }
