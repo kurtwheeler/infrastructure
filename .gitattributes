@@ -1,2 +1,2 @@
-.key
-.tfstate
+*.key filter=git-crypt diff=git-crypt
+*.tfstate filter=git-crypt diff=git-crypt
