@@ -2,6 +2,10 @@ resource "aws_security_group" "cognoma-public-elb" {
   name = "cognoma-public-elb"
   description = "cognoma-public-elb"
   vpc_id = "${aws_vpc.cognoma-vpc.id}"
+
+  tags {
+    Name = "cognoma-public-elb"
+  }
 }
 
 resource "aws_security_group_rule" "cognoma-public-elb-all" {

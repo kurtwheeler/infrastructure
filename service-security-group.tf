@@ -2,6 +2,10 @@ resource "aws_security_group" "cognoma-service" {
   name = "cognoma-service"
   description = "cognoma-service"
   vpc_id = "${aws_vpc.cognoma-vpc.id}"
+
+  tags {
+    Name = "cognoma-service"
+  }
 }
 
 resource "aws_security_group_rule" "cognoma-service-http" {

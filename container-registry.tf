@@ -1,3 +1,7 @@
+resource "aws_ecs_cluster" "cognoma-core-service" {
+  name = "cognoma-core-service"
+}
+
 resource "aws_iam_role" "ecs-service-role" {
   name = "ecs-service"
 
@@ -50,8 +54,9 @@ resource "aws_ecs_task_definition" "cognoma-core-service" {
   container_definitions = "${file("task-definitions/core-service.json.key")}"
 }
 
-resource "aws_ecs_service" "core-service" {
-  name = "core-service"
+resource "aws_ecs_service" "cognoma-core-service" {
+  name = "cognoma-core-service"
+  cluster = "${aws_ecs_cluster.cognoma-core-service.id}"
   task_definition = "${aws_ecs_task_definition.cognoma-core-service.arn}"
   desired_count  = 2
   iam_role = "${aws_iam_role.ecs-service-role.name}"

@@ -2,6 +2,10 @@ resource "aws_security_group" "cognoma-db" {
   name = "cognoma-db"
   description = "cognoma-db"
   vpc_id = "${aws_vpc.cognoma-vpc.id}"
+
+  tags {
+    Name = "cognoma-db"
+  }
 }
 
 resource "aws_security_group_rule" "cognoma-db-postgres-self" {
