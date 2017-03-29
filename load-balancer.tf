@@ -21,7 +21,10 @@ resource "aws_elb" "cognoma-core" {
 
   security_groups = ["${aws_security_group.cognoma-service.id}"]
 
-  instances = ["${aws_instance.cognoma-service-1.id}"]
+  instances = [
+    "${aws_instance.cognoma-service-1.id}",
+    "${aws_instance.cognoma-service-2.id}",
+  ]
 
   cross_zone_load_balancing = true
   idle_timeout = 60
