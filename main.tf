@@ -43,6 +43,7 @@ resource "aws_subnet" "cognoma-1a" {
   availability_zone = "us-east-1a"
   cidr_block = "172.31.48.0/20"
   vpc_id = "${aws_vpc.cognoma-vpc.id}"
+  map_public_ip_on_launch = true
 
   tags {
     Name = "cognoma-1a"
@@ -153,6 +154,7 @@ resource "aws_db_instance" "postgres-db" {
   username = "administrator"
   password = "${var.database_password}"
   db_subnet_group_name = "${aws_db_subnet_group.cognoma.name}"
-  snapshot_identifier = "cognoma-snapshot"
   skip_final_snapshot = true
+  vpc_security_group_ids = ["${aws_security_group.cognoma-db.id}"]
+  multi_az = true
 }

@@ -13,7 +13,7 @@ resource "aws_security_group_rule" "cognoma-db-postgres-self" {
   from_port = 5432
   to_port = 5432
   protocol = "tcp"
-  self = true
+  source_security_group_id = "${aws_security_group.cognoma-service.id}"
   security_group_id = "${aws_security_group.cognoma-db.id}"
 }
 
