@@ -101,7 +101,6 @@ resource "aws_key_pair" "cognoma" {
 }
 
 resource "aws_instance" "cognoma-service-1" {
-  # ami = "ami-1924770e"
   ami = "ami-275ffe31"
   instance_type = "t2.small"
   availability_zone = "us-east-1a"
@@ -118,7 +117,6 @@ resource "aws_instance" "cognoma-service-1" {
 }
 
 resource "aws_instance" "cognoma-service-2" {
-  # ami = "ami-1924770e"
   ami = "ami-275ffe31"
   instance_type = "t2.small"
   availability_zone = "us-east-1b"
