@@ -1,7 +1,3 @@
-# You'll need to have the environment vars set to be able to do anything:
-# AWS_ACCESS_KEY_ID
-# AWS_SECRET_ACCESS_KEY
-# I suggest putting these in your .bashrc
 provider "aws" {
   region = "us-east-1"
 }
