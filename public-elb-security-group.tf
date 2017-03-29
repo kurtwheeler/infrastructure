@@ -16,3 +16,13 @@ resource "aws_security_group_rule" "cognoma-public-elb-all" {
   security_group_id = "${aws_security_group.cognoma-service.id}"
   cidr_blocks = ["0.0.0.0/0"]
 }
+
+
+resource "aws_security_group_rule" "cognoma-public-elb-outbound" {
+  type = "egress"
+  from_port = 0
+  to_port = 0
+  protocol = "tcp"
+  cidr_blocks = ["0.0.0.0/0"]
+  security_group_id = "${aws_security_group.cognoma-public-elb.id}"
+}

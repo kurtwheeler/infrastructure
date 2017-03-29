@@ -14,7 +14,7 @@ resource "aws_security_group_rule" "cognoma-db-postgres-self" {
   to_port = 5432
   protocol = "tcp"
   self = true
-  security_group_id = "${aws_security_group.cognoma-service.id}"
+  security_group_id = "${aws_security_group.cognoma-db.id}"
 }
 
 resource "aws_security_group_rule" "cognoma-db-postgres-other" {
@@ -25,5 +25,15 @@ resource "aws_security_group_rule" "cognoma-db-postgres-other" {
 
   # I'm not sure where this ip is pointing to... TBD
   cidr_blocks = ["173.161.250.209/32"]
-  security_group_id = "${aws_security_group.cognoma-service.id}"
+  security_group_id = "${aws_security_group.cognoma-db.id}"
+}
+
+
+resource "aws_security_group_rule" "cognoma-db-outbound" {
+  type = "egress"
+  from_port = 0
+  to_port = 0
+  protocol = "tcp"
+  cidr_blocks = ["0.0.0.0/0"]
+  security_group_id = "${aws_security_group.cognoma-db.id}"
 }

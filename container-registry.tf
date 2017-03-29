@@ -1,5 +1,5 @@
-resource "aws_ecs_cluster" "cognoma-core-service" {
-  name = "cognoma-core-service"
+resource "aws_ecs_cluster" "cognoma" {
+  name = "cognoma"
 }
 
 resource "aws_iam_role" "ecs-service-role" {
@@ -12,7 +12,7 @@ resource "aws_iam_role" "ecs-service-role" {
     {
       "Action": "sts:AssumeRole",
       "Principal": {
-        "Service": "ec2.amazonaws.com"
+        "Service": "ecs.amazonaws.com"
       },
       "Effect": "Allow",
       "Sid": ""
@@ -56,9 +56,11 @@ resource "aws_ecs_task_definition" "cognoma-core-service" {
 
 resource "aws_ecs_service" "cognoma-core-service" {
   name = "cognoma-core-service"
-  cluster = "${aws_ecs_cluster.cognoma-core-service.id}"
+  cluster = "${aws_ecs_cluster.cognoma.id}"
   task_definition = "${aws_ecs_task_definition.cognoma-core-service.arn}"
   desired_count  = 2
+  deployment_minimum_healthy_percent = 50
+  deployment_maximum_percent = 200
   iam_role = "${aws_iam_role.ecs-service-role.name}"
   depends_on = ["aws_iam_role_policy.ecs-service"]
 
@@ -76,8 +78,11 @@ resource "aws_ecs_task_definition" "cognoma-nginx" {
 
 resource "aws_ecs_service" "nginx" {
   name = "cognoma-nginx"
+  cluster = "${aws_ecs_cluster.cognoma.id}"
   task_definition = "${aws_ecs_task_definition.cognoma-nginx.arn}"
   desired_count  = 2
+  deployment_minimum_healthy_percent = 50
+  deployment_maximum_percent = 200
   iam_role = "${aws_iam_role.ecs-service-role.name}"
   depends_on = ["aws_iam_role_policy.ecs-service"]
 

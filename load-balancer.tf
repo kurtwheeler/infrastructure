@@ -30,11 +30,10 @@ resource "aws_elb" "cognoma-core" {
   internal = true
 }
 
-# Can't get this until after we make the cert in the new account
-# data "aws_acm_certificate" "cognoma-ssl-cert" {
-#   domain   = "api.cognoma.org"
-#   statuses = ["ISSUED"]
-# }
+data "aws_acm_certificate" "cognoma-ssl-cert" {
+  domain   = "api.cognoma.org"
+  statuses = ["ISSUED"]
+}
 
 resource "aws_elb" "cognoma-nginx" {
   name = "cognoma-nginx"
@@ -48,7 +47,7 @@ resource "aws_elb" "cognoma-nginx" {
     instance_protocol = "http"
     lb_port = 443
     lb_protocol = "https"
-    # ssl_certificate_id = "${data.aws_acm_certificate.cognoma-ssl-cert.arn}"
+    ssl_certificate_id = "${data.aws_acm_certificate.cognoma-ssl-cert.arn}"
   }
 
   health_check {
