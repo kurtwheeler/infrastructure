@@ -51,7 +51,7 @@ EOF
 
 resource "aws_ecs_task_definition" "cognoma-core-service" {
   family = "cognoma-core-service"
-  container_definitions = "${file("task-definitions/core-service.json.key")}"
+  container_definitions = "${file("task-definitions/core-service.json.secret")}"
 }
 
 resource "aws_ecs_service" "cognoma-core-service" {
@@ -73,7 +73,7 @@ resource "aws_ecs_service" "cognoma-core-service" {
 
 resource "aws_ecs_task_definition" "cognoma-nginx" {
   family = "cognoma-nginx"
-  container_definitions = "${file("task-definitions/nginx.json.key")}"
+  container_definitions = "${file("task-definitions/nginx.json.secret")}"
 }
 
 resource "aws_ecs_service" "nginx" {
