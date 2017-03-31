@@ -8,8 +8,8 @@ for the backend of the Project Cognoma.
 ## Getting started
 
 Make sure to fork [this repository on
- +GitHub](https://github.com/cognoma/infrastructure "cognoma/infrastructure on
- +GitHub") first.
+ GitHub](https://github.com/cognoma/infrastructure "cognoma/infrastructure on
+ GitHub") first.
 
 ### Prerequisites
 
