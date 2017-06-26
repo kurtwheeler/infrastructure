@@ -69,6 +69,13 @@ resource "aws_ecs_service" "cognoma-core-service" {
     container_name = "cognoma-core-service"
     container_port = 8000
   }
+
+  # Task definitions get created during deployment. Therefore as soon
+  # as someone deploys a new one, the one specified by these
+  # configuration files is out of date.
+  lifecycle {
+    ignore_changes = ["task_definition"]
+  }
 }
 
 resource "aws_ecs_task_definition" "cognoma-nginx" {
@@ -90,5 +97,9 @@ resource "aws_ecs_service" "nginx" {
     elb_name = "${aws_elb.cognoma-nginx.name}"
     container_name = "cognoma-nginx"
     container_port = 80
+  }
+
+  lifecycle {
+    ignore_changes = ["task_definition"]
   }
 }

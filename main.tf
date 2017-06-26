@@ -59,7 +59,7 @@ resource "aws_subnet" "cognoma-1b" {
 
 resource "aws_iam_instance_profile" "ecs-instance-profile" {
   name  = "cognoma-ecs-instance-profile"
-  roles = ["${aws_iam_role.ecs-instance.name}"]
+  role = "${aws_iam_role.ecs-instance.name}"
 }
 
 resource "aws_iam_role" "ecs-instance" {
