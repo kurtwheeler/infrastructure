@@ -60,7 +60,7 @@ resource "aws_ecs_service" "cognoma-core-service" {
   task_definition = "${aws_ecs_task_definition.cognoma-core-service.arn}"
   desired_count  = 2
   deployment_minimum_healthy_percent = 50
-  deployment_maximum_percent = 200
+  deployment_maximum_percent = 100
   iam_role = "${aws_iam_role.ecs-service-role.name}"
   depends_on = ["aws_iam_role_policy.ecs-service"]
 
@@ -68,6 +68,13 @@ resource "aws_ecs_service" "cognoma-core-service" {
     elb_name = "${aws_elb.cognoma-core.name}"
     container_name = "cognoma-core-service"
     container_port = 8000
+  }
+
+  # Task definitions get created during deployment. Therefore as soon
+  # as someone deploys a new one, the one specified by these
+  # configuration files is out of date.
+  lifecycle {
+    ignore_changes = ["task_definition"]
   }
 }
 
@@ -82,7 +89,7 @@ resource "aws_ecs_service" "nginx" {
   task_definition = "${aws_ecs_task_definition.cognoma-nginx.arn}"
   desired_count  = 2
   deployment_minimum_healthy_percent = 50
-  deployment_maximum_percent = 200
+  deployment_maximum_percent = 100
   iam_role = "${aws_iam_role.ecs-service-role.name}"
   depends_on = ["aws_iam_role_policy.ecs-service"]
 
@@ -90,5 +97,9 @@ resource "aws_ecs_service" "nginx" {
     elb_name = "${aws_elb.cognoma-nginx.name}"
     container_name = "cognoma-nginx"
     container_port = 80
+  }
+
+  lifecycle {
+    ignore_changes = ["task_definition"]
   }
 }
