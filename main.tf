@@ -167,7 +167,7 @@ resource "aws_iam_user_policy" "ses-access" {
   "Statement": [
     {
       "Effect": "Allow",
-      "Action": ["ses:SendEmail", "ses:SendRawEmail"],
+      "Action": ["ses:SendEmail", "ses:SendRawEmail", "ses:GetSendQuota"],
       "Resource":"*"
     }
   ]
