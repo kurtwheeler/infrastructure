@@ -182,6 +182,13 @@ resource "aws_iam_access_key" "cognoma-server-access-key" {
 resource "aws_s3_bucket" "cognoma-files" {
   bucket = "cognoma-files"
 
+  cors_rule {
+    allowed_origins = ["*"]
+    allowed_methods = ["GET"]
+    max_age_seconds = 3000
+    allowed_headers = ["Authorization"]
+  }
+
   tags {
     Name = "Cognoma Files"
   }
