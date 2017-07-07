@@ -152,3 +152,75 @@ resource "aws_db_instance" "postgres-db" {
   vpc_security_group_ids = ["${aws_security_group.cognoma-db.id}"]
   multi_az = true
 }
+
+resource "aws_iam_user" "cognoma-server" {
+  name = "cognoma-server"
+}
+
+resource "aws_iam_user_policy" "ses-access" {
+  name = "ses-access"
+  user = "${aws_iam_user.cognoma-server.name}"
+
+  policy = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": ["ses:SendEmail", "ses:SendRawEmail"],
+      "Resource":"*"
+    }
+  ]
+}
+EOF
+}
+
+resource "aws_iam_access_key" "cognoma-server-access-key" {
+  user = "${aws_iam_user.cognoma-server.name}"
+}
+
+resource "aws_s3_bucket" "cognoma-files" {
+  bucket = "cognoma-files"
+
+  tags {
+    Name = "Cognoma Files"
+  }
+}
+
+data "aws_iam_policy_document" "cognoma-s3-access" {
+  statement {
+    actions = [
+      "s3:GetObject",
+    ]
+
+    resources = [
+      "arn:aws:s3:::${aws_s3_bucket.cognoma-files.id}/*",
+    ]
+
+    principals {
+      type = "AWS"
+      identifiers = ["*"]
+    }
+  }
+
+  statement {
+    actions = [
+      "s3:*",
+    ]
+
+    resources = [
+      "arn:aws:s3:::${aws_s3_bucket.cognoma-files.id}",
+      "arn:aws:s3:::${aws_s3_bucket.cognoma-files.id}/*",
+    ]
+
+    principals {
+      type = "AWS"
+      identifiers = ["${aws_iam_user.cognoma-server.arn}"]
+    }
+  }
+}
+
+resource "aws_s3_bucket_policy" "cognoma-s3-policy" {
+  bucket = "${aws_s3_bucket.cognoma-files.id}"
+  policy = "${data.aws_iam_policy_document.cognoma-s3-access.json}"
+}
