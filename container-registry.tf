@@ -78,6 +78,14 @@ resource "aws_ecs_service" "cognoma-core-service" {
   }
 }
 
+resource "aws_ecr_repository" "cognoma-core-service" {
+  name = "cognoma-core-service"
+}
+
+resource "aws_ecr_repository" "cognoma-task-service" {
+  name = "cognoma-task-service"
+}
+
 resource "aws_ecs_task_definition" "cognoma-nginx" {
   family = "cognoma-nginx"
   container_definitions = "${file("task-definitions/nginx.json.secret")}"

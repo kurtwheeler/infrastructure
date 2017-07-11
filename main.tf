@@ -179,6 +179,77 @@ resource "aws_iam_access_key" "cognoma-server-access-key" {
   user = "${aws_iam_user.cognoma-server.name}"
 }
 
+resource "aws_iam_user" "cognoma-deployer" {
+  name = "cognoma-deployer"
+}
+
+data "aws_iam_policy_document" "cognoma-deployment" {
+  statement {
+    actions = [
+      "s3:GetObject",
+      "s3:PutObject",
+      "s3:DeleteObject",
+    ]
+
+    resources = [
+      "arn:aws:s3:::${aws_s3_bucket.cognoma-static.id}/*",
+    ]
+  }
+
+  statement {
+    actions = [
+      "s3:ListBucket"
+    ]
+
+    resources = [
+      "arn:aws:s3:::${aws_s3_bucket.cognoma-static.id}",
+    ]
+  }
+
+  statement {
+    actions = [
+      "ecs:DeregisterTaskDefinition",
+      "ecs:DescribeServices",
+      "ecs:DescribeTaskDefinition",
+      "ecs:DescribeTasks",
+      "ecs:ListTaskDefinitions",
+      "ecs:ListTasks",
+      "ecs:RegisterTaskDefinition",
+      "ecs:UpdateService"
+    ]
+
+    resources = ["*"]
+  }
+
+  statement {
+    actions = [
+      "ecr:BatchCheckLayerAvailability",
+      "ecr:BatchGetImage",
+      "ecr:CompleteLayerUpload",
+      "ecr:DescribeRepositories",
+      "ecr:GetAuthorizationToken",
+      "ecr:GetDownloadUrlForLayer",
+      "ecr:GetRepositoryPolicy",
+      "ecr:InitiateLayerUpload",
+      "ecr:ListImages",
+      "ecr:PutImage",
+      "ecr:UploadLayerPart",
+    ]
+
+    resources = ["*"]
+  }
+}
+
+resource "aws_iam_user_policy" "cognoma-deployer" {
+  name = "cognoma-deployer"
+  user = "${aws_iam_user.cognoma-deployer.name}"
+  policy = "${data.aws_iam_policy_document.cognoma-deployment.json}"
+}
+
+resource "aws_iam_access_key" "cognoma-deployer-access-key" {
+  user = "${aws_iam_user.cognoma-deployer.name}"
+}
+
 resource "aws_s3_bucket" "cognoma-files" {
   bucket = "cognoma-files"
 
@@ -230,4 +301,46 @@ data "aws_iam_policy_document" "cognoma-s3-access" {
 resource "aws_s3_bucket_policy" "cognoma-s3-policy" {
   bucket = "${aws_s3_bucket.cognoma-files.id}"
   policy = "${data.aws_iam_policy_document.cognoma-s3-access.json}"
+}
+
+
+resource "aws_s3_bucket" "cognoma-static" {
+  bucket = "cognoma.org"
+
+  cors_rule {
+    allowed_origins = ["*"]
+    allowed_methods = ["GET"]
+    max_age_seconds = 3000
+    allowed_headers = ["Authorization"]
+  }
+
+  tags {
+    Name = "Cognoma Static Files"
+  }
+
+  website {
+    index_document = "index.html"
+  }
+}
+
+data "aws_iam_policy_document" "cognoma-s3-static-access" {
+  statement {
+    actions = [
+      "s3:GetObject",
+    ]
+
+    resources = [
+      "arn:aws:s3:::${aws_s3_bucket.cognoma-static.id}/*",
+    ]
+
+    principals {
+      type = "AWS"
+      identifiers = ["*"]
+    }
+  }
+}
+
+resource "aws_s3_bucket_policy" "cognoma-s3-static-policy" {
+  bucket = "${aws_s3_bucket.cognoma-static.id}"
+  policy = "${data.aws_iam_policy_document.cognoma-s3-static-access.json}"
 }

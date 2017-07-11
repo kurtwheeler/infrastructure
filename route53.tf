@@ -10,18 +10,6 @@ data "aws_route53_zone" "cognoma" {
   zone_id = "Z2GDAYII3P3OEX"
 }
 
-resource "aws_route53_record" "cognoma-dot-org" {
-  zone_id = "${data.aws_route53_zone.cognoma.zone_id}"
-  name = "${var.cognoma-domain}"
-  type = "A"
-  ttl = "300"
-
-  records = [
-    "192.30.252.153",
-    "192.30.252.153",
-  ]
-}
-
 resource "aws_ses_domain_identity" "cognoma" {
   domain = "${var.cognoma-domain}"
 }
@@ -36,6 +24,19 @@ resource "aws_route53_record" "cognoma-api" {
     zone_id = "${aws_elb.cognoma-nginx.zone_id}"
     evaluate_target_health = false
   }
+}
+
+resource "aws_route53_record" "cognoma-dot-org" {
+   name = "${var.cognoma-domain}"
+   zone_id = "${data.aws_route53_zone.cognoma.zone_id}"
+   type = "A"
+   alias {
+     name = "${aws_s3_bucket.cognoma-static.website_domain}"
+     zone_id = "${aws_s3_bucket.cognoma-static.hosted_zone_id}"
+     evaluate_target_health = true
+   }
+
+  depends_on = ["aws_s3_bucket.cognoma-static"]
 }
 
 resource "aws_route53_record" "cognoma-ses-verification-record" {
