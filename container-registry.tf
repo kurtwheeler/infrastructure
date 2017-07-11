@@ -48,7 +48,6 @@ resource "aws_iam_role_policy" "ecs-service" {
 EOF
 }
 
-
 resource "aws_ecs_task_definition" "cognoma-core-service" {
   family = "cognoma-core-service"
   container_definitions = "${file("task-definitions/core-service.json.secret")}"
@@ -80,10 +79,6 @@ resource "aws_ecs_service" "cognoma-core-service" {
 
 resource "aws_ecr_repository" "cognoma-core-service" {
   name = "cognoma-core-service"
-}
-
-resource "aws_ecr_repository" "cognoma-task-service" {
-  name = "cognoma-task-service"
 }
 
 resource "aws_ecs_task_definition" "cognoma-nginx" {
