@@ -91,3 +91,20 @@ resource "aws_security_group_rule" "cognoma-db-outbound" {
   cidr_blocks = ["0.0.0.0/0"]
   security_group_id = "${aws_security_group.cognoma-db.id}"
 }
+
+variable MY_IP_ADDRESS {}
+
+# In order to create/manage databases within the RDS instance the user
+# of the machine running `terraform apply` needs to have access to the
+# RDS instance
+resource "aws_security_group_rule" "cognoma-db-deployer" {
+  type = "ingress"
+  from_port = 5432
+  to_port = 5432
+  protocol = "tcp"
+  security_group_id = "${aws_security_group.cognoma-db.id}"
+
+  # Set the environment variable TF_VAR_MY_IP_ADDRESS to your IP when
+  # deploying!
+  cidr_blocks = ["${var.MY_IP_ADDRESS}/32"]
+}

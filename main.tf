@@ -151,6 +151,19 @@ resource "aws_db_instance" "postgres-db" {
   skip_final_snapshot = true
   vpc_security_group_ids = ["${aws_security_group.cognoma-db.id}"]
   multi_az = true
+  publicly_accessible = true
+}
+
+provider "postgresql" {
+  host = "${aws_db_instance.postgres-db.address}"
+  port = "${aws_db_instance.postgres-db.port}"
+  username = "${aws_db_instance.postgres-db.username}"
+  password = "${var.database_password}"
+}
+
+resource "postgresql_database" "cognoma-task-service" {
+  name = "cognoma_task_postgres"
+  depends_on = ["aws_security_group_rule.cognoma-db-deployer"]
 }
 
 resource "aws_iam_user" "cognoma-server" {

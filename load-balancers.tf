@@ -33,6 +33,41 @@ resource "aws_elb" "cognoma-core" {
   internal = true
 }
 
+resource "aws_elb" "cognoma-task" {
+  name = "cognoma-task-service"
+  subnets = [
+    "${aws_subnet.cognoma-1a.id}",
+    "${aws_subnet.cognoma-1b.id}"]
+
+  listener {
+    instance_port = 8000
+    instance_protocol = "http"
+    lb_port = 80
+    lb_protocol = "http"
+  }
+
+  health_check {
+    healthy_threshold = 10
+    unhealthy_threshold = 2
+    timeout = 5
+    target = "TCP:8000"
+    interval = 30
+  }
+
+  security_groups = ["${aws_security_group.cognoma-service.id}"]
+
+  instances = [
+    "${aws_instance.cognoma-service-1.id}",
+    "${aws_instance.cognoma-service-2.id}",
+  ]
+
+  cross_zone_load_balancing = true
+  idle_timeout = 60
+  connection_draining = true
+  connection_draining_timeout = 400
+  internal = true
+}
+
 data "aws_acm_certificate" "cognoma-ssl-cert" {
   domain   = "api.cognoma.org"
   statuses = ["ISSUED"]
