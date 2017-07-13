@@ -22,7 +22,7 @@ resource "aws_route53_record" "cognoma-api" {
   alias {
     name = "${aws_elb.cognoma-nginx.dns_name}"
     zone_id = "${aws_elb.cognoma-nginx.zone_id}"
-    evaluate_target_health = false
+    evaluate_target_health = true
   }
 }
 
