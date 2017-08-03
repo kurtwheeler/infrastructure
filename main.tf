@@ -98,7 +98,7 @@ resource "aws_key_pair" "cognoma" {
 
 resource "aws_instance" "cognoma-service-1" {
   ami = "ami-275ffe31"
-  instance_type = "t2.small"
+  instance_type = "m4.large"
   availability_zone = "us-east-1a"
   vpc_security_group_ids = ["${aws_security_group.cognoma-service.id}"]
   iam_instance_profile = "${aws_iam_instance_profile.ecs-instance-profile.name}"
@@ -114,7 +114,7 @@ resource "aws_instance" "cognoma-service-1" {
 
 resource "aws_instance" "cognoma-service-2" {
   ami = "ami-275ffe31"
-  instance_type = "t2.small"
+  instance_type = "m4.large"
   availability_zone = "us-east-1b"
   vpc_security_group_ids = ["${aws_security_group.cognoma-service.id}"]
   iam_instance_profile = "${aws_iam_instance_profile.ecs-instance-profile.name}"
@@ -186,6 +186,7 @@ resource "aws_iam_user" "cognoma-deployer" {
 data "aws_iam_policy_document" "cognoma-deployment" {
   statement {
     actions = [
+      "s3:ListObjects",
       "s3:GetObject",
       "s3:PutObject",
       "s3:DeleteObject",
