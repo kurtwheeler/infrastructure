@@ -82,9 +82,8 @@ resource "aws_iam_role" "ecs-instance" {
 EOF
 }
 
-resource "aws_iam_policy_attachment" "ecs" {
-  name = "AmazonEC2ContainerServiceforEC2Role"
-  roles = ["${aws_iam_role.ecs-instance.name}"]
+resource "aws_iam_role_policy_attachment" "ecs" {
+  role = "${aws_iam_role.ecs-instance.name}"
 
   # The following can be found here:
   # https://console.aws.amazon.com/iam/home?region=us-east-1#/policies/arn:aws:iam::aws:policy/service-role/AmazonEC2ContainerServiceforEC2Role
@@ -143,7 +142,7 @@ resource "aws_db_instance" "postgres-db" {
   storage_type = "gp2"
   engine = "postgres"
   engine_version = "9.5.4"
-  instance_class = "db.t2.large"
+  instance_class = "db.t2.small"
   name = "cognoma_postgres"
   username = "administrator"
   password = "${var.database_password}"
