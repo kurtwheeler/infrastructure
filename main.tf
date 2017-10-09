@@ -82,9 +82,8 @@ resource "aws_iam_role" "ecs-instance" {
 EOF
 }
 
-resource "aws_iam_policy_attachment" "ecs" {
-  name = "AmazonEC2ContainerServiceforEC2Role"
-  roles = ["${aws_iam_role.ecs-instance.name}"]
+resource "aws_iam_role_policy_attachment" "ecs" {
+  role = "${aws_iam_role.ecs-instance.name}"
 
   # The following can be found here:
   # https://console.aws.amazon.com/iam/home?region=us-east-1#/policies/arn:aws:iam::aws:policy/service-role/AmazonEC2ContainerServiceforEC2Role
@@ -98,7 +97,7 @@ resource "aws_key_pair" "cognoma" {
 
 resource "aws_instance" "cognoma-service-1" {
   ami = "ami-275ffe31"
-  instance_type = "t2.small"
+  instance_type = "r4.large"
   availability_zone = "us-east-1a"
   vpc_security_group_ids = ["${aws_security_group.cognoma-service.id}"]
   iam_instance_profile = "${aws_iam_instance_profile.ecs-instance-profile.name}"
@@ -114,7 +113,7 @@ resource "aws_instance" "cognoma-service-1" {
 
 resource "aws_instance" "cognoma-service-2" {
   ami = "ami-275ffe31"
-  instance_type = "t2.small"
+  instance_type = "r4.large"
   availability_zone = "us-east-1b"
   vpc_security_group_ids = ["${aws_security_group.cognoma-service.id}"]
   iam_instance_profile = "${aws_iam_instance_profile.ecs-instance-profile.name}"
@@ -143,7 +142,7 @@ resource "aws_db_instance" "postgres-db" {
   storage_type = "gp2"
   engine = "postgres"
   engine_version = "9.5.4"
-  instance_class = "db.t2.large"
+  instance_class = "db.t2.small"
   name = "cognoma_postgres"
   username = "administrator"
   password = "${var.database_password}"
@@ -151,4 +150,197 @@ resource "aws_db_instance" "postgres-db" {
   skip_final_snapshot = true
   vpc_security_group_ids = ["${aws_security_group.cognoma-db.id}"]
   multi_az = true
+}
+
+resource "aws_iam_user" "cognoma-server" {
+  name = "cognoma-server"
+}
+
+resource "aws_iam_user_policy" "ses-access" {
+  name = "ses-access"
+  user = "${aws_iam_user.cognoma-server.name}"
+
+  policy = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": ["ses:SendEmail", "ses:SendRawEmail", "ses:GetSendQuota"],
+      "Resource":"*"
+    }
+  ]
+}
+EOF
+}
+
+resource "aws_iam_access_key" "cognoma-server-access-key" {
+  user = "${aws_iam_user.cognoma-server.name}"
+}
+
+resource "aws_iam_user" "cognoma-deployer" {
+  name = "cognoma-deployer"
+}
+
+data "aws_iam_policy_document" "cognoma-deployment" {
+  statement {
+    actions = [
+      "s3:ListObjects",
+      "s3:GetObject",
+      "s3:PutObject",
+      "s3:DeleteObject",
+    ]
+
+    resources = [
+      "arn:aws:s3:::${aws_s3_bucket.cognoma-static.id}/*",
+    ]
+  }
+
+  statement {
+    actions = [
+      "s3:ListBucket"
+    ]
+
+    resources = [
+      "arn:aws:s3:::${aws_s3_bucket.cognoma-static.id}",
+    ]
+  }
+
+  statement {
+    actions = [
+      "ecs:DeregisterTaskDefinition",
+      "ecs:DescribeServices",
+      "ecs:DescribeTaskDefinition",
+      "ecs:DescribeTasks",
+      "ecs:ListTaskDefinitions",
+      "ecs:ListTasks",
+      "ecs:RegisterTaskDefinition",
+      "ecs:UpdateService"
+    ]
+
+    resources = ["*"]
+  }
+
+  statement {
+    actions = [
+      "ecr:BatchCheckLayerAvailability",
+      "ecr:BatchGetImage",
+      "ecr:CompleteLayerUpload",
+      "ecr:DescribeRepositories",
+      "ecr:GetAuthorizationToken",
+      "ecr:GetDownloadUrlForLayer",
+      "ecr:GetRepositoryPolicy",
+      "ecr:InitiateLayerUpload",
+      "ecr:ListImages",
+      "ecr:PutImage",
+      "ecr:UploadLayerPart",
+    ]
+
+    resources = ["*"]
+  }
+}
+
+resource "aws_iam_user_policy" "cognoma-deployer" {
+  name = "cognoma-deployer"
+  user = "${aws_iam_user.cognoma-deployer.name}"
+  policy = "${data.aws_iam_policy_document.cognoma-deployment.json}"
+}
+
+resource "aws_iam_access_key" "cognoma-deployer-access-key" {
+  user = "${aws_iam_user.cognoma-deployer.name}"
+}
+
+resource "aws_s3_bucket" "cognoma-files" {
+  bucket = "cognoma-files"
+
+  cors_rule {
+    allowed_origins = ["*"]
+    allowed_methods = ["GET"]
+    max_age_seconds = 3000
+    allowed_headers = ["Authorization"]
+  }
+
+  tags {
+    Name = "Cognoma Files"
+  }
+}
+
+data "aws_iam_policy_document" "cognoma-s3-access" {
+  statement {
+    actions = [
+      "s3:GetObject",
+    ]
+
+    resources = [
+      "arn:aws:s3:::${aws_s3_bucket.cognoma-files.id}/*",
+    ]
+
+    principals {
+      type = "AWS"
+      identifiers = ["*"]
+    }
+  }
+
+  statement {
+    actions = [
+      "s3:*",
+    ]
+
+    resources = [
+      "arn:aws:s3:::${aws_s3_bucket.cognoma-files.id}",
+      "arn:aws:s3:::${aws_s3_bucket.cognoma-files.id}/*",
+    ]
+
+    principals {
+      type = "AWS"
+      identifiers = ["${aws_iam_user.cognoma-server.arn}"]
+    }
+  }
+}
+
+resource "aws_s3_bucket_policy" "cognoma-s3-policy" {
+  bucket = "${aws_s3_bucket.cognoma-files.id}"
+  policy = "${data.aws_iam_policy_document.cognoma-s3-access.json}"
+}
+
+
+resource "aws_s3_bucket" "cognoma-static" {
+  bucket = "cognoma.org"
+
+  cors_rule {
+    allowed_origins = ["*"]
+    allowed_methods = ["GET"]
+    max_age_seconds = 3000
+    allowed_headers = ["Authorization"]
+  }
+
+  tags {
+    Name = "Cognoma Static Files"
+  }
+
+  website {
+    index_document = "index.html"
+  }
+}
+
+data "aws_iam_policy_document" "cognoma-s3-static-access" {
+  statement {
+    actions = [
+      "s3:GetObject",
+    ]
+
+    resources = [
+      "arn:aws:s3:::${aws_s3_bucket.cognoma-static.id}/*",
+    ]
+
+    principals {
+      type = "AWS"
+      identifiers = ["*"]
+    }
+  }
+}
+
+resource "aws_s3_bucket_policy" "cognoma-s3-static-policy" {
+  bucket = "${aws_s3_bucket.cognoma-static.id}"
+  policy = "${data.aws_iam_policy_document.cognoma-s3-static-access.json}"
 }
