@@ -1,5 +1,5 @@
 provider "aws" {
-  region = "us-east-1"
+  region = "us-east-2"
 }
 
 variable "database_password" {}
@@ -35,25 +35,25 @@ resource "aws_route_table" "cognoma" {
   }
 }
 
-resource "aws_subnet" "cognoma-1a" {
-  availability_zone = "us-east-1a"
+resource "aws_subnet" "cognoma-2a" {
+  availability_zone = "us-east-2a"
   cidr_block = "172.31.48.0/20"
   vpc_id = "${aws_vpc.cognoma-vpc.id}"
   map_public_ip_on_launch = true
 
   tags {
-    Name = "cognoma-1a"
+    Name = "cognoma-2a"
   }
 }
 
-resource "aws_subnet" "cognoma-1b" {
-  availability_zone = "us-east-1b"
+resource "aws_subnet" "cognoma-2b" {
+  availability_zone = "us-east-2b"
   cidr_block = "172.31.0.0/20"
   vpc_id = "${aws_vpc.cognoma-vpc.id}"
   map_public_ip_on_launch = true
 
   tags {
-    Name = "cognoma-1b"
+    Name = "cognoma-2b"
   }
 }
 
@@ -99,10 +99,10 @@ resource "aws_key_pair" "cognoma" {
 resource "aws_instance" "cognoma-service-1" {
   ami = "ami-275ffe31"
   instance_type = "t2.small"
-  availability_zone = "us-east-1a"
+  availability_zone = "us-east-2a"
   vpc_security_group_ids = ["${aws_security_group.cognoma-service.id}"]
   iam_instance_profile = "${aws_iam_instance_profile.ecs-instance-profile.name}"
-  subnet_id = "${aws_subnet.cognoma-1a.id}"
+  subnet_id = "${aws_subnet.cognoma-2a.id}"
   depends_on = ["aws_internet_gateway.cognoma"]
   user_data = "${file("instance-user-data.sh")}"
   key_name = "${aws_key_pair.cognoma.key_name}"
@@ -115,10 +115,10 @@ resource "aws_instance" "cognoma-service-1" {
 resource "aws_instance" "cognoma-service-2" {
   ami = "ami-275ffe31"
   instance_type = "t2.small"
-  availability_zone = "us-east-1b"
+  availability_zone = "us-east-2b"
   vpc_security_group_ids = ["${aws_security_group.cognoma-service.id}"]
   iam_instance_profile = "${aws_iam_instance_profile.ecs-instance-profile.name}"
-  subnet_id = "${aws_subnet.cognoma-1b.id}"
+  subnet_id = "${aws_subnet.cognoma-2b.id}"
   depends_on = ["aws_internet_gateway.cognoma"]
   user_data = "${file("instance-user-data.sh")}"
   key_name = "${aws_key_pair.cognoma.key_name}"
@@ -130,7 +130,7 @@ resource "aws_instance" "cognoma-service-2" {
 
 resource "aws_db_subnet_group" "cognoma" {
   name = "cognoma"
-  subnet_ids = ["${aws_subnet.cognoma-1a.id}", "${aws_subnet.cognoma-1b.id}"]
+  subnet_ids = ["${aws_subnet.cognoma-2a.id}", "${aws_subnet.cognoma-2b.id}"]
 
   tags {
     Name = "Cognoma DB Subnet"

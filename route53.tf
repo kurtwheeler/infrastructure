@@ -3,7 +3,7 @@
 # }
 
 data "aws_route53_zone" "cognoma" {
-  zone_id = "Z2GDAYII3P3OEX"
+  zone_id = "Z1D5X4ZSR5R6N1"
 }
 
 resource "aws_route53_record" "cognoma-dot-org" {
