@@ -4,6 +4,12 @@ provider "aws" {
 
 variable "database_password" {}
 
+data "aws_caller_identity" "current" {}
+
+data "aws_region" "current" {
+  current = true
+}
+
 resource "aws_vpc" "cognoma-vpc" {
   cidr_block = "172.31.0.0/16"
   enable_dns_support = true

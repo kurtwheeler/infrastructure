@@ -22,32 +22,60 @@ resource "aws_iam_role" "ecs-service-role" {
 EOF
 }
 
+data "aws_iam_policy_document" "ecs-iam-role-document" {
+  statement {
+    effect = "Allow"
+    actions = [
+      "ec2:AuthorizeSecurityGroupIngress",
+      "elasticloadbalancing:DeregisterInstancesFromLoadBalancer",
+      "elasticloadbalancing:DeregisterTargets",
+      "elasticloadbalancing:Describe*",
+      "elasticloadbalancing:RegisterInstancesWithLoadBalancer",
+      "elasticloadbalancing:RegisterTargets"
+    ]
+
+    # VPCs and security groups do not have .arn attributes. The reason
+    # appears to be that when specifying them in IAM policies that you
+    # need to specify the region. Since this is only deployed in a
+    # single region, we can actually build an "effective arn" for them.
+    resources = [
+      "arn:aws:ec2:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:security-group/${aws_security_group.cognoma-service.id}",
+      "arn:aws:ec2:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:security-group/${aws_security_group.cognoma-public-elb.id}",
+      "${aws_elb.cognoma-core.arn}",
+      "${aws_elb.cognoma-nginx.arn}"
+    ]
+
+    condition {
+      test = "StringEquals"
+      variable = "ec2:Vpc"
+      values = ["arn:aws:ec2:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:vpc/${aws_vpc.cognoma-vpc.id}"]
+    }
+  }
+}
+
 resource "aws_iam_role_policy" "ecs-service" {
   name = "ecs-service-policy"
   role = "${aws_iam_role.ecs-service-role.name}"
 
-  policy = <<EOF
-{
-    "Version": "2012-10-17",
-    "Statement": [
-        {
-            "Effect": "Allow",
-            "Action": [
-                "ec2:AuthorizeSecurityGroupIngress",
-                "ec2:Describe*",
-                "elasticloadbalancing:DeregisterInstancesFromLoadBalancer",
-                "elasticloadbalancing:DeregisterTargets",
-                "elasticloadbalancing:Describe*",
-                "elasticloadbalancing:RegisterInstancesWithLoadBalancer",
-                "elasticloadbalancing:RegisterTargets"
-            ],
-            "Resource": "*"
-        }
-    ]
-}
-EOF
+  policy = "${data.aws_iam_policy_document.ecs-iam-role-document.json}"
 }
 
+# ec2:Describe* cannot be limited to specfic resources:
+# https://docs.aws.amazon.com/AWSEC2/latest/APIReference/ec2-api-permissions.html#ec2-api-unsupported-resource-permissions
+data "aws_iam_policy_document" "ec2-describe-star" {
+  statement {
+    effect = "Allow"
+    actions = ["ec2:Describe*"]
+    resources = ["*"]
+  }
+}
+
+resource "aws_iam_role_policy" "ecs-describe-ec2" {
+  name = "ecs-describe-ec2"
+  role = "${aws_iam_role.ecs-service-role.name}"
+
+  policy = "${data.aws_iam_policy_document.ec2-describe-star.json}"
+}
 
 resource "aws_ecs_task_definition" "cognoma-core-service" {
   family = "cognoma-core-service"
