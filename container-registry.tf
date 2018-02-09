@@ -106,6 +106,36 @@ resource "aws_ecs_service" "cognoma-core-service" {
   }
 }
 
+resource "aws_ecr_repository" "cognoma-core-service" {
+  name = "cognoma-core-service"
+}
+
+resource "aws_ecs_task_definition" "cognoma-ml-workers" {
+  family = "cognoma-ml-workers"
+  container_definitions = "${file("task-definitions/ml-workers.json.secret")}"
+}
+
+resource "aws_ecs_service" "cognoma-ml-workers" {
+  name = "cognoma-ml-workers"
+  cluster = "${aws_ecs_cluster.cognoma.id}"
+  task_definition = "${aws_ecs_task_definition.cognoma-ml-workers.arn}"
+  desired_count  = 2
+  deployment_minimum_healthy_percent = 50
+  deployment_maximum_percent = 100
+  depends_on = ["aws_iam_role_policy.ecs-service"]
+
+  # Task definitions get created during deployment. Therefore as soon
+  # as someone deploys a new one, the one specified by these
+  # configuration files is out of date.
+  lifecycle {
+    ignore_changes = ["task_definition"]
+  }
+}
+
+resource "aws_ecr_repository" "cognoma-ml-workers" {
+  name = "cognoma-ml-workers"
+}
+
 resource "aws_ecs_task_definition" "cognoma-nginx" {
   family = "cognoma-nginx"
   container_definitions = "${file("task-definitions/nginx.json.secret")}"
