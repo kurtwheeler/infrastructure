@@ -1,8 +1,8 @@
 resource "aws_elb" "cognoma-core" {
   name = "cognoma-core-service"
   subnets = [
-    "${aws_subnet.cognoma-2a.id}",
-    "${aws_subnet.cognoma-2b.id}"]
+    "${aws_subnet.cognoma-1a.id}",
+    "${aws_subnet.cognoma-1b.id}"]
 
   listener {
     instance_port = 8000
@@ -41,8 +41,8 @@ data "aws_acm_certificate" "cognoma-ssl-cert" {
 resource "aws_elb" "cognoma-nginx" {
   name = "cognoma-nginx"
   subnets = [
-    "${aws_subnet.cognoma-2a.id}",
-    "${aws_subnet.cognoma-2b.id}"
+    "${aws_subnet.cognoma-1a.id}",
+    "${aws_subnet.cognoma-1b.id}"
   ]
 
   listener {
