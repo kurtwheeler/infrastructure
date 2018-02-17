@@ -59,6 +59,10 @@ resource "aws_ecr_repository" "cognoma-ml-workers" {
   name = "cognoma-ml-workers"
 }
 
+resource "aws_ecr_repository" "cognoma-nginx" {
+  name = "cognoma-nginx"
+}
+
 resource "aws_ecs_task_definition" "cognoma-nginx" {
   family = "cognoma-nginx"
   container_definitions = "${file("task-definitions/nginx.json.secret")}"

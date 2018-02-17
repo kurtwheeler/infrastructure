@@ -35,6 +35,24 @@ resource "aws_security_group_rule" "cognoma-service-ssh" {
   security_group_id = "${aws_security_group.cognoma-service.id}"
 }
 
+resource "aws_security_group_rule" "cognoma-service-outbound-http" {
+  type = "egress"
+  from_port = 80
+  to_port = 80
+  protocol = "tcp"
+  cidr_blocks = ["0.0.0.0/0"]
+  security_group_id = "${aws_security_group.cognoma-service.id}"
+}
+
+resource "aws_security_group_rule" "cognoma-service-outbound-https" {
+  type = "egress"
+  from_port = 443
+  to_port = 443
+  protocol = "tcp"
+  cidr_blocks = ["0.0.0.0/0"]
+  security_group_id = "${aws_security_group.cognoma-service.id}"
+}
+
 resource "aws_security_group" "cognoma-public-elb" {
   name = "cognoma-public-elb"
   description = "cognoma-public-elb"

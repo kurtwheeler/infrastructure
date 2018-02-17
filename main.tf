@@ -102,7 +102,7 @@ resource "aws_key_pair" "cognoma" {
 }
 
 resource "aws_instance" "cognoma-service-1" {
-  ami = "ami-275ffe31"
+  ami = "ami-5e414e24"
   availability_zone = "us-east-1a"
   instance_type = "r4.large"
   vpc_security_group_ids = ["${aws_security_group.cognoma-service.id}"]
@@ -118,7 +118,7 @@ resource "aws_instance" "cognoma-service-1" {
 }
 
 resource "aws_instance" "cognoma-service-2" {
-  ami = "ami-275ffe31"
+  ami = "ami-5e414e24"
   availability_zone = "us-east-1b"
   instance_type = "r4.large"
   vpc_security_group_ids = ["${aws_security_group.cognoma-service.id}"]
