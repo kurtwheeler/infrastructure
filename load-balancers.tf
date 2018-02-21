@@ -15,7 +15,7 @@ resource "aws_elb" "cognoma-core" {
     healthy_threshold = 10
     unhealthy_threshold = 2
     timeout = 5
-    target = "TCP:8000"
+    target = "HTTP:8000/"
     interval = 30
   }
 

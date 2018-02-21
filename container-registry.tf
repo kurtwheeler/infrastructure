@@ -16,6 +16,9 @@ resource "aws_ecs_service" "cognoma-core-service" {
   deployment_maximum_percent = 100
   iam_role = "arn:aws:iam::589864003899:role/aws-service-role/ecs.amazonaws.com/AWSServiceRoleForECS"
 
+  # Give the service some time to come up before getting prematurely shut down.
+  health_check_grace_period_seconds = 180
+
   load_balancer {
     elb_name = "${aws_elb.cognoma-core.name}"
     container_name = "cognoma-core-service"
@@ -76,6 +79,9 @@ resource "aws_ecs_service" "nginx" {
   deployment_minimum_healthy_percent = 50
   deployment_maximum_percent = 100
   iam_role = "arn:aws:iam::589864003899:role/aws-service-role/ecs.amazonaws.com/AWSServiceRoleForECS"
+
+  # Give the service some time to come up before getting prematurely shut down.
+  health_check_grace_period_seconds = 180
 
   load_balancer {
     elb_name = "${aws_elb.cognoma-nginx.name}"
